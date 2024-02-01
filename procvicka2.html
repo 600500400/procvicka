@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procvičování matematiky</title>
+    <style>
+        body {
+            font-size: 22px;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1;
+            justify-content: center;
+            align-items: center;
+        }
+        .custom-dialog, .custom-dialog-obtiznost {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            z-index: 2;
+            border: 1px solid #ccc;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+        .custom-dialog input, .custom-dialog button,
+        .custom-dialog-obtiznost input, .custom-dialog-obtiznost button {
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Procvičování matematiky</h1>
+<p>Počet příkladů: <span id="pocetPrikladu">0</span></p>
+
+<div id="game"></div>
+
+<div class="overlay"></div>
+<div class="custom-dialog">
+    <p id="questionText">Zde bude váš příklad</p>
+    <input type="number" id="userAnswer" />
+    <button id="submitAnswer">Odpovědět</button>
+    <button id="endGame">Ukončit hru</button>
+</div>
+<div class="custom-dialog-obtiznost">
+    <div class="dialog-content">
+        <p>Zadej max hodnotu (pro +,-):</p>
+        <input type="number" id="maxValueInput" />
+        <button onclick="setDifficulty()">Nastavit</button>
+    </div>
+</div>
+
+<script>
+    class Procvicovani {
+        constructor() {
+            this.spravneOdpovedi = 0;
+            this.aktualniPriklad = 0;
+            this.rozsahCiselNasobeni = [1, 10];
+            this.rozsahCiselScitaniOdcitani = [1, 10];
+            this.povoleneOperace = ["*", "+", "/", "-"]; // Přidal jsem "-" pro odečítání
+            this.priklad = null;
+            this.nastavObtiznost = false;
+
+            this.vytvorFormular();
+        }
+
+        vytvorFormular() {
+            const gameDiv = document.getElementById("game");
+            gameDiv.innerHTML = '';
+
+            const buttonObtiznost = document.createElement("button");
+            buttonObtiznost.innerText = "Nastavit obtížnost";
+            buttonObtiznost.addEventListener('click', () => this.nastavObtiznostDialog());
+
+            const buttonSpustitHru = document.createElement("button");
+            buttonSpustitHru.innerText = "Spustit hru";
+            buttonSpustitHru.disabled = true;
+            buttonSpustitHru.addEventListener('click', () => this.novaHra());
+
+            gameDiv.appendChild(buttonObtiznost);
+            gameDiv.appendChild(buttonSpustitHru);
+
+            const buttonEndGame = document.createElement("button");
+            buttonEndGame.innerText = "Ukončit hru";
+            buttonEndGame.style.display = "none";
+            buttonEndGame.addEventListener('click', () => this.endGame());
+
+            gameDiv.appendChild(buttonEndGame);
+        }
+
+        nastavObtiznostDialog() {
+            document.querySelector('.custom-dialog-obtiznost').style.display = 'flex';
+            document.querySelector('.overlay').style.display = 'block';
+        }
+
+        novaHra() {
+            if (!this.nastavObtiznost) {
+                alert("Nejdříve nastavte obtížnost.");
+                return;
+            }
+
+            document.querySelector('#endGame').style.display = 'block';
+            document.getElementById('userAnswer').value = '';
+            this.aktualniPriklad++;
+            this.updatePocetPrikladu();
+
+            this.priklad = this.generujPriklad();
+            this.zobrazPriklad();
+        }
+
+        generujPriklad() {
+            const operace = this.povoleneOperace[Math.floor(Math.random() * this.povoleneOperace.length)];
+            let cislo1, cislo2, vysledek;
+
+            switch (operace) {
+                case '*':
+                    cislo1 = Math.floor(Math.random() * (this.rozsahCiselNasobeni[1] - this.rozsahCiselNasobeni[0] + 1)) + this.rozsahCiselNasobeni[0];
+                    cislo2 = Math.floor(Math.random() * (this.rozsahCiselNasobeni[1] - this.rozsahCiselNasobeni[0] + 1)) + this.rozsahCiselNasobeni[0];
+                    vysledek = cislo1 * cislo2;
+                    break;
+                case '+':
+                    cislo1 = Math.floor(Math.random() * (this.rozsahCiselScitaniOdcitani[1] - this.rozsahCiselScitaniOdcitani[0] + 1)) + this.rozsahCiselScitaniOdcitani[0];
+                    cislo2 = Math.floor(Math.random() * (this.rozsahCiselScitaniOdcitani[1] - this.rozsahCiselScitaniOdcitani[0] + 1)) + this.rozsahCiselScitaniOdcitani[0];
+                    vysledek = cislo1 + cislo2;
+                    break;
+                case '/':
+                    do {
+                        cislo1 = Math.floor(Math.random() * (this.rozsahCiselNasobeni[1] - this.rozsahCiselNasobeni[0] + 1)) + this.rozsahCiselNasobeni[0];
+                        cislo2 = Math.floor(Math.random() * (this.rozsahCiselNasobeni[1] - this.rozsahCiselNasobeni[0] + 1)) + this.rozsahCiselNasobeni[0];
+                    } while (cislo1 % cislo2 !== 0);
+                    vysledek = cislo1 / cislo2;
+                    break;
+                case '-':
+                    cislo1 = Math.floor(Math.random() * (this.rozsahCiselScitaniOdcitani[1] - this.rozsahCiselScitaniOdcitani[0] + 1)) + this.rozsahCiselScitaniOdcitani[0];
+                    cislo2 = Math.floor(Math.random() * (this.rozsahCiselScitaniOdcitani[1] - this.rozsahCiselScitaniOdcitani[0] + 1)) + this.rozsahCiselScitaniOdcitani[0];
+                    vysledek = cislo1 - cislo2;
+                    break;
+            }
+
+            return { cislo1, cislo2, operace, vysledek };
+        }
+
+        zobrazPriklad() {
+            const priklad = this.priklad;
+            const questionText = document.getElementById('questionText');
+            questionText.innerText = `${priklad.cislo1} ${priklad.operace} ${priklad.cislo2}`;
+            document.querySelector('.custom-dialog').style.display = 'flex';
+            document.querySelector('.overlay').style.display = 'block';
+        }
+
+        endGame() {
+            document.querySelector('.custom-dialog').style.display = 'none';
+            document.querySelector('.overlay').style.display = 'none';
+            this.nastavObtiznost = false;
+            this.vytvorFormular();
+
+            alert(`Hra byla ukončena. Počet správných odpovědí: ${this.spravneOdpovedi}`);
+        }
+
+        updatePocetPrikladu() {
+            document.getElementById('pocetPrikladu').textContent = this.aktualniPriklad.toString();
+        }
+    }
+
+    function setDifficulty() {
+        const maxValue = parseInt(document.getElementById('maxValueInput').value, 10);
+        if (!isNaN(maxValue) && maxValue > 0) {
+            procvicovani.rozsahCiselScitaniOdcitani[1] = maxValue;
+            procvicovani.nastavObtiznost = true;
+
+            document.querySelector('.custom-dialog-obtiznost').style.display = 'none';
+            document.querySelector('.overlay').style.display = 'none';
+            document.querySelector('#game button:nth-child(2)').disabled = false;
+        } else {
+            alert("Zadejte platnou hodnotu.");
+        }
+    }
+
+    const procvicovani = new Procvicovani();
+
+    document.getElementById('submitAnswer').addEventListener('click', () => {
+        const answer = parseFloat(document.getElementById('userAnswer').value);
+        if (answer === procvicovani.priklad.vysledek) {
+            alert("Správně!");
+            procvicovani.spravneOdpovedi++;
+        } else {
+            alert("Špatně, správná odpověď byla: " + procvicovani.priklad.vysledek);
+        }
+        document.querySelector('.custom-dialog').style.display = 'none';
+        document.querySelector('.overlay').style.display = 'none';
+        procvicovani.novaHra();
+    });
+
+    document.getElementById('endGame').addEventListener('click', () => {
+        procvicovani.endGame();
+    });
+
+    document.getElementById('userAnswer').addEventListener('keyup', (event) => {
+        if (event.key === "Enter") {
+            document.getElementById('submitAnswer').click();
+        }
+    });
+</script>
+
+</body>
+</html>
+
