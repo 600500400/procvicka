@@ -55,7 +55,7 @@
 </div>
 <div class="custom-dialog-obtiznost">
     <div class="dialog-content">
-        <p>Zadej max hodnotu (pro +,-):</p>
+        <p>Zadej max hodnotu (+,-)</p>
         <input type="number" id="maxValueInput" />
         <button onclick="setDifficulty()">Nastavit</button>
     </div>
@@ -136,14 +136,15 @@
                     break;
                 case '/':
                     do {
-                        cislo1 = Math.floor(Math.random() * (this.rozsahCiselNasobeni[1] - this.rozsahCiselNasobeni[0] + 1)) + this.rozsahCiselNasobeni[0];
-                        cislo2 = Math.floor(Math.random() * (this.rozsahCiselNasobeni[1] - this.rozsahCiselNasobeni[0] + 1)) + this.rozsahCiselNasobeni[0];
-                    } while (cislo1 % cislo2 !== 0);
+                    cislo2 = Math.floor(Math.random() * 11); // Generuj číslo2 od 0 do 10
+                    } while (cislo2 === 0); // Zajisti, aby číslo2 nebylo 0
+                    cislo1 = cislo2 * Math.floor(Math.random() * 11); // Generuj číslo1 jako násobek čísla2 od 0 do 10
                     vysledek = cislo1 / cislo2;
                     break;
+
                 case '-':
                     cislo1 = Math.floor(Math.random() * (this.rozsahCiselScitaniOdcitani[1] - this.rozsahCiselScitaniOdcitani[0] + 1)) + this.rozsahCiselScitaniOdcitani[0];
-                    cislo2 = Math.floor(Math.random() * (this.rozsahCiselScitaniOdcitani[1] - this.rozsahCiselScitaniOdcitani[0] + 1)) + this.rozsahCiselScitaniOdcitani[0];
+                    cislo2 = Math.floor(Math.random() * cislo1); // Druhé číslo je náhodné a menší než první
                     vysledek = cislo1 - cislo2;
                     break;
             }
@@ -215,4 +216,3 @@
 
 </body>
 </html>
-
